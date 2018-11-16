@@ -1,5 +1,6 @@
 package com.esexample.demo;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -16,7 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
@@ -76,28 +79,29 @@ public class DemoApplication {
         }
         return new ResponseEntity(result.getResult().toString(), HttpStatus.OK);
     }
+
     @PutMapping("/update/people/man")
     @ResponseBody
     public ResponseEntity update(
             @RequestParam(name = "id") String id,
-            @RequestParam(name = "name",required = false) String name,
-            @RequestParam(name = "age",required = false ) String age,
-            @RequestParam(name = "date",required = false)
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "age", required = false) String age,
+            @RequestParam(name = "date", required = false)
 //                    @DateTimeFormat(pattern = "yyyy-MM-dd")
                     String date,
-            @RequestParam(name = "country",required = false) String country) {
+            @RequestParam(name = "country", required = false) String country) {
 
-        UpdateRequest update=new UpdateRequest("people","man",id);
+        UpdateRequest update = new UpdateRequest("people", "man", id);
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder()
                     .startObject();
-            if(name!=null)
+            if (name != null)
                 builder.field("name", name);
-            if(age!=null)
+            if (age != null)
                 builder.field("age", age);
-            if(date!=null)
+            if (date != null)
                 builder.field("date", date);
-            if(country!=null)
+            if (country != null)
                 builder.field("country", country);
             builder.endObject();
             update.doc(builder);
@@ -106,13 +110,36 @@ public class DemoApplication {
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         try {
-            UpdateResponse result= this.client.update(update).get();
+            UpdateResponse result = this.client.update(update).get();
             return new ResponseEntity(result.getResult().toString(), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+
     }
+    @RequestMapping(value = "/getImage")
+    @ResponseBody
+    public void getImage(HttpServletResponse response) {
+        response.setContentType("image/jpeg");
+
+        String filePath = "E:/uploads/file/zhyw/EVN_ACCESSORY/1.jpg";
+        File file = new File(filePath);
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            try {
+                IOUtils.copy(in, response.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
