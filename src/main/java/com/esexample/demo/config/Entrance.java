@@ -1,5 +1,6 @@
 package com.esexample.demo.config;
 
+import com.esexample.demo.action.Project;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
@@ -31,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Date:2018/11/19/019
  * @Time:15:41
  */
-public class Entrance {
+public class Entrance implements Runnable {
     private static HtmlPage getHtmlPage(String url) throws Exception {
         final WebClient webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getOptions().setCssEnabled(false);
@@ -44,6 +45,14 @@ public class Entrance {
         return page;
     }
 
+    /**
+     * 获取所有地址
+     * @param preString
+     * @param atomic
+     * @param lastString
+     * @param pageCount
+     * @return
+     */
    public static List<String> getAllUrl(String preString,Integer atomic,String lastString,Integer pageCount){
        List urlList= new ArrayList<>();
        for(int i=0;i<pageCount;i++){
@@ -53,6 +62,12 @@ public class Entrance {
        }
        return urlList;
    }
+
+    /**
+     * 获取每一页的所有连接
+     * @param page
+     * @return
+     */
    public static List getItemListByPage(HtmlPage page){
        List list=new ArrayList<>();
        page.getElementsByTagName("ul").get(2).getElementsByTagName("li").iterator().forEachRemaining(li -> {
@@ -99,26 +114,35 @@ public class Entrance {
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    public static void main(String[] args) throws Exception {
 
-        String webUrl = "http://www.ccgp.gov.cn/cggg/dfgg/";
-        List<String> pageList=getAllUrl("http://www.ccgp.gov.cn/cggg/dfgg/index_",1,".htm",24);
-        pageList.add(0,webUrl);
-        for(String url:pageList){
-            HtmlPage page = getHtmlPage(url);
-            List<Map<String,String>> list=getItemListByPage(page);
-            for(Map<String,String> item:list){
-                addProjectItem(item);
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            System.out.println("******************************");
+            System.out.println("线程。。。");
         }
 
+    }
 
-//        page.getElementsByTagName("ul").get(2).getElementsByTagName("li").get(0).getChildElements().iterator().forEachRemaining(str->{
-//            System.out.println("ssss:"+str.getTextContent());
-//        });
-
-
+    public static void main(String[] args) throws Exception {
+//        String webUrl = "http://www.ccgp.gov.cn/cggg/dfgg/";
+//        List<String> pageList=getAllUrl("http://www.ccgp.gov.cn/cggg/dfgg/index_",1,".htm",24);
+//        pageList.add(0,webUrl);
+//        for(String url:pageList){
+//            HtmlPage page = getHtmlPage(url);
+//            List<Map<String,String>> list=getItemListByPage(page);
+//            for(Map<String,String> item:list){
+//                addProjectItem(item);
+//            }
+//            System.out.println("******************************");
+//        }
+        Entrance p1=new Entrance();
+        Thread t = new Thread(p1);
+        t.start();
     }
 
 }
